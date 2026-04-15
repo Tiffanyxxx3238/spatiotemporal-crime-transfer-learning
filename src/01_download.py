@@ -1,116 +1,151 @@
 """
 01_download.py
 --------------
-下載三個城市的犯罪資料。
+Download crime data for all cities.
 
-NYC 和 Chicago 用官方 API 自動下載（近 5 年）。
-Karachi 需手動從 Kaggle 下載後放到 data/raw/。
+Auto-download via API:  NYC, Chicago, LA
+Manual download needed: Karachi (Kaggle), London (data.police.uk)
 """
 
 import os
 import requests
 import pandas as pd
-from tqdm import tqdm
 
 RAW_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "raw")
 os.makedirs(RAW_DIR, exist_ok=True)
 
-# ── 共用設定 ────────────────────────────────────────────────
-START_YEAR = 2006   # 抓近 5 年
-LIMIT = 2_000_000     # 每次最多拉幾筆（NYC/Chicago API 上限）
-
-# ── NYC：NYPD Complaint Data ─────────────────────────────────
 NYC_API = "https://data.cityofnewyork.us/resource/qgea-i56i.json"
+CHI_API = "https://data.cityofchicago.org/resource/ijzp-q8t2.json"
+LA_API  = "https://data.lacity.org/resource/2nrs-mtv8.json"
+
 
 def download_nyc():
     out_path = os.path.join(RAW_DIR, "nyc_raw.csv")
     if os.path.exists(out_path):
-        print(f"[NYC] 已存在，跳過：{out_path}")
+        print(f"[NYC] Already exists, skipping.")
         return
-
-    print("[NYC] 開始分年下載 (2015-2023)...")
+    print("[NYC] Downloading 2006-2024...")
     all_dfs = []
     for year in range(2006, 2025):
-        print(f"  下載 {year}...")
+        print(f"  {year}...", end=" ")
         params = {
             "$limit": 600000,
             "$where": (f"cmplnt_fr_dt >= '{year}-01-01T00:00:00' AND "
                        f"cmplnt_fr_dt <= '{year}-12-31T23:59:59'"),
-            "$select": (
-                "cmplnt_fr_dt,cmplnt_fr_tm,"
-                "ofns_desc,law_cat_cd,"
-                "boro_nm,addr_pct_cd,"
-                "latitude,longitude"
-            ),
+            "$select": ("cmplnt_fr_dt,cmplnt_fr_tm,"
+                        "ofns_desc,law_cat_cd,"
+                        "boro_nm,addr_pct_cd,"
+                        "latitude,longitude"),
         }
         try:
             r = requests.get(NYC_API, params=params, timeout=120)
             r.raise_for_status()
             df_yr = pd.DataFrame(r.json())
-            print(f"    {len(df_yr):,} 筆")
+            print(f"{len(df_yr):,}")
             all_dfs.append(df_yr)
         except Exception as e:
-            print(f'    {year} Error: {e}, skipping...')
-            continue
+            print(f"Error: {e}")
+    if all_dfs:
+        df = pd.concat(all_dfs, ignore_index=True)
+        df.to_csv(out_path, index=False)
+        print(f"[NYC] Done: {len(df):,} -> {out_path}")
 
-    df = pd.concat(all_dfs, ignore_index=True)
-    df.to_csv(out_path, index=False)
-    print(f"[NYC] 完成！共 {len(df):,} 筆 -> {out_path}")
-
-# ── Chicago：Crimes 2001 to Present ─────────────────────────
-CHI_API = "https://data.cityofchicago.org/resource/ijzp-q8t2.json"
 
 def download_chicago():
     out_path = os.path.join(RAW_DIR, "chicago_raw.csv")
     if os.path.exists(out_path):
-        print(f"[Chicago] 已存在，跳過：{out_path}")
+        print(f"[Chicago] Already exists, skipping.")
         return
-
-    print("[Chicago] 開始分年下載 (2015-2023)...")
+    print("[Chicago] Downloading 2001-2024...")
     all_dfs = []
     for year in range(2001, 2025):
-        print(f"  下載 {year}...")
+        print(f"  {year}...", end=" ")
         params = {
-            "$limit": 600000,
+            "$limit": 300000,
             "$where": f"year = {year}",
-            "$select": (
-                "date,"
-                "primary_type,description,"
-                "community_area,district,"
-                "latitude,longitude"
-            ),
+            "$select": ("date,"
+                        "primary_type,description,"
+                        "community_area,district,"
+                        "latitude,longitude"),
         }
         try:
             r = requests.get(CHI_API, params=params, timeout=120)
             r.raise_for_status()
             df_yr = pd.DataFrame(r.json())
-            print(f"    {len(df_yr):,} 筆")
+            print(f"{len(df_yr):,}")
             all_dfs.append(df_yr)
         except Exception as e:
-            print(f'    {year} Error: {e}, skipping...')
-            continue
+            print(f"Error: {e}")
+    if all_dfs:
+        df = pd.concat(all_dfs, ignore_index=True)
+        df.to_csv(out_path, index=False)
+        print(f"[Chicago] Done: {len(df):,} -> {out_path}")
 
-    df = pd.concat(all_dfs, ignore_index=True)
-    df.to_csv(out_path, index=False)
-    print(f"[Chicago] 完成！共 {len(df):,} 筆 -> {out_path}")
 
-# ── Karachi：手動下載說明 ────────────────────────────────────
+def download_la():
+    out_path = os.path.join(RAW_DIR, "la_raw.csv")
+    if os.path.exists(out_path):
+        print(f"[LA] Already exists, skipping.")
+        return
+    print("[LA] Downloading 2020-2024...")
+    all_dfs = []
+    for year in range(2020, 2025):
+        print(f"  {year}...", end=" ")
+        params = {
+            "$limit": 400000,
+            "$where": (f"date_occ >= '{year}-01-01T00:00:00' AND "
+                       f"date_occ <= '{year}-12-31T23:59:59'"),
+            "$select": "date_occ,time_occ,crm_cd_desc,area_name,lat,lon",
+        }
+        try:
+            r = requests.get(LA_API, params=params, timeout=120)
+            r.raise_for_status()
+            df_yr = pd.DataFrame(r.json())
+            print(f"{len(df_yr):,}")
+            all_dfs.append(df_yr)
+        except Exception as e:
+            print(f"Error: {e}")
+    if all_dfs:
+        df = pd.concat(all_dfs, ignore_index=True)
+        df.to_csv(out_path, index=False)
+        print(f"[LA] Done: {len(df):,} -> {out_path}")
+
+
+def check_london():
+    london_dir = os.path.join(RAW_DIR, "london")
+    if os.path.exists(london_dir):
+        files = [f for f in os.listdir(london_dir) if f.endswith('.csv')]
+        if files:
+            print(f"[London] Found {len(files)} CSV files in {london_dir}")
+            return
+    print("""
+[London] Manual download required:
+  1. Go to https://data.police.uk/data/
+  2. Select: Metropolitan Police Service
+  3. Date range: 2018-01 to 2023-12
+  4. Download and extract ZIP
+  5. Put all CSV files into data/raw/london/
+""")
+
+
 def check_karachi():
     kar_path = os.path.join(RAW_DIR, "karachi_raw.csv")
     if os.path.exists(kar_path):
-        print(f"[Karachi] 找到檔案：{kar_path}")
-        return
-    print("""
-[Karachi] 尚未找到資料，請手動下載：
-  1. 前往 https://www.kaggle.com/datasets/sarcasmos/karachi-urban-crime-analysis-with-demographic
-  2. 點 Download，解壓縮後找到 .csv 檔
-  3. 重新命名為 karachi_raw.csv
-  4. 放到 data/raw/ 資料夾
+        print(f"[Karachi] Found: {kar_path}")
+    else:
+        print("""
+[Karachi] Manual download required:
+  1. Go to https://www.kaggle.com/datasets/sarcasmos/karachi-urban-crime-analysis-with-demographic
+  2. Download and extract ZIP
+  3. Rename CSV to karachi_raw.csv
+  4. Put in data/raw/
 """)
 
-# ── 執行 ─────────────────────────────────────────────────────
+
 if __name__ == "__main__":
     download_nyc()
     download_chicago()
+    download_la()
+    check_london()
     check_karachi()
-    print("\n全部完成！接著執行 02_preprocess.py")
+    print("\nAll done!")
