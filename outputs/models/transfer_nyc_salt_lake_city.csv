@@ -1,0 +1,4 @@
+Scenario,Precision Macro,F1 Macro
+Salt Lake City baseline (LightGBM),0.9372,0.9275
+Zero-shot NYC->Salt Lake City,0.8861,0.9221
+Teacher-Student (T=3),0.8428,0.8894

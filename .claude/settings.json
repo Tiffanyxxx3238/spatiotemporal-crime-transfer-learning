@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(& \"C:\\\\Users\\\\user\\\\anaconda3\\\\Scripts\\\\conda.exe\" env list)",
+      "PowerShell(& \"C:\\\\Users\\\\user\\\\anaconda3\\\\python.exe\" \"C:\\\\Users\\\\user\\\\GitHub\\\\model-predict-crime\\\\notebook\\\\clean_london.py\" --input_dir \"C:\\\\Users\\\\user\\\\GitHub\\\\model-predict-crime\\\\data\\\\raw\\\\london_raw\" --output \"C:\\\\Users\\\\user\\\\GitHub\\\\model-predict-crime\\\\data\\\\processed\\\\london_clean.csv\")",
+      "Bash(curl -s 'https://data.lacity.org/resource/63jg-8b9z.json?$limit=2&$select=date_occ,time_occ,crm_cd_desc,area_name,lat,lon')",
+      "Bash(python3 -c \"import sys,json; data=json.load\\(sys.stdin\\); [print\\(r\\) for r in data]\")"
+    ]
+  }
+}

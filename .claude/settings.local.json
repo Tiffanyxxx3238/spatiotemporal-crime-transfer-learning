@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls \"C:\\\\Users\\\\user\\\\GitHub\\\\model-predict-crime.zip\\\\model-predict-crime\\\\7f79178a70f0762194ca2cc9ee887d49293dd064\" 2>/dev/null || echo \"Cannot access\")",
+      "Read(//c/Users/user/GitHub/model-predict-crime.zip/model-predict-crime/**)",
+      "Bash(dir \"c:\\\\Users\\\\user\\\\GitHub\\\\model-predict-crime\\\\notebook\")"
+    ]
+  }
+}

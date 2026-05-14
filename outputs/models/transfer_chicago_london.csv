@@ -1,0 +1,7 @@
+Scenario,Precision Macro,F1 Macro,Coverage,Note
+London baseline,0.5289,0.5054,1.0,no transfer
+Zero-shot Chicago->London,0.5159,0.5037,1.0,0% target data
+Fine-tune 10%,0.5283,0.4985,1.0,10% target+src proba
+Fine-tune 20%,0.5306,0.4998,1.0,20% target+src proba
+Fine-tune 50%,0.5298,0.4984,1.0,50% target+src proba
+Teacher-Student (T=3.0),0.53,0.4988,1.0,soft labels

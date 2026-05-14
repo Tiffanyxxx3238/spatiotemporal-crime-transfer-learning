@@ -1,0 +1,9 @@
+Feature Group,N Features,Precision Macro,Precision Weighted,F1 Macro
+hist_* + lag_*,6,0.5495,0.5739,0.5278
+hist_* only,3,0.5456,0.5697,0.5238
+All features (full model),26,0.5452,0.5705,0.5243
+Spatial + Temporal + Relative,17,0.5064,0.5487,0.4957
+lag_* only,3,0.4898,0.5307,0.4898
+Spatial only,4,0.4779,0.5248,0.4771
+Spatial + Temporal,13,0.4333,0.4808,0.4305
+Stability features,3,0.4152,0.4691,0.3789

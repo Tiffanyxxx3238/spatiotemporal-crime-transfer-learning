@@ -1,0 +1,7 @@
+Scenario,Precision Macro,F1 Macro,Coverage,Note
+Philadelphia baseline,0.4809,0.4928,1.0,no transfer
+Zero-shot Chicago->Philadelphia,0.4925,0.5069,1.0,0% target data
+Fine-tune 10%,0.4572,0.4709,1.0,10% target+src proba
+Fine-tune 20%,0.4565,0.4694,1.0,20% target+src proba
+Fine-tune 50%,0.4811,0.4899,1.0,50% target+src proba
+Teacher-Student (T=3.0),0.4853,0.493,1.0,soft labels

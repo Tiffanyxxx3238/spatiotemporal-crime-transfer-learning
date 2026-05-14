@@ -1,0 +1,7 @@
+Scenario,Precision Macro,F1 Macro,Coverage,Note
+Chicago baseline,0.4311,0.4227,1.0,no transfer
+NYC->Chicago zero-shot,0.4462,0.376,1.0,0% target data
+Fine-tune 10% (src features),0.4355,0.4095,1.0,10% target + source proba
+Fine-tune 20% (src features),0.4376,0.4167,1.0,20% target + source proba
+Fine-tune 50% (src features),0.4404,0.4189,1.0,50% target + source proba
+Teacher-Student (T=3.0),0.4454,0.4171,1.0,soft labels
