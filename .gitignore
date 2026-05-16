@@ -25,6 +25,10 @@ data/raw/nyc_raw.csv
 data/raw/chicago_raw.csv
 data/raw/london_clean.csv
 data/raw/la_raw.csv
+data/raw/dallas_raw.csv
+data/raw/seattle_raw.csv
+data/raw/sf_raw.csv
+data/raw/*.csv
 
 # Large processed data files (>50MB)
 data/processed/all_cities.csv
@@ -34,7 +38,10 @@ data/processed/london_clean.csv
 data/processed/philadelphia_clean.csv
 data/processed/la_clean.csv
 data/processed/west_yorkshire_clean.csv
-
+data/processed/seattle_clean.csv
+data/processed/dallas_clean.csv
+data/processed/san_francisco_clean.csv
+data/processed/*.csv
 # OS
 .DS_Store
 Thumbs.db

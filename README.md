@@ -46,9 +46,9 @@ Each prediction unit is a **(grid cell × time slot × month)** triple — captu
 
 | City | State | Source | Status |
 |------|-------|--------|--------|
-| Seattle | WA | Seattle Open Data (Socrata) | ❌ 新增腳本 — `src/download_seattle.py` · `notebook/crime_classification_full_Seattle.py` |
-| San Francisco | CA | SF Open Data (Socrata) | ❌ 新增腳本 — `src/download_sf.py` · `notebook/crime_classification_full_SF.py` |
-| Dallas | TX | Dallas Open Data (Socrata) | ❌ 新增腳本 — `src/download_dallas.py` · `notebook/crime_classification_full_Dallas.py` |
+| Seattle | WA | Seattle Open Data (Socrata) | ✅ 已加入地圖 — 9,094 grids, 精確率 0.510, 地圖準確率 71.9% |
+| San Francisco | CA | SF Open Data (Socrata) | ✅ 已加入地圖 — 4,893 grids, 精確率 0.440, 地圖準確率 65.7% |
+| Dallas | TX | Dallas Open Data (Socrata) | ✅ 已加入地圖 — 3,492 grids, 精確率 0.280, 地圖準確率 84.1% (class collapse → other) |
 | Lansing | MI | ArcGIS FeatureServer | Script ready — `src/download_lansing_dayton_littlerock.py` |
 | Dayton | OH | ArcGIS FeatureServer | Script ready |
 | Little Rock | AR | ArcGIS FeatureServer | Script ready |
@@ -173,13 +173,13 @@ All cities are unified to 3 categories:
 
 ## Interactive Map
 
-`outputs/maps/crime_map_v8.html` — standalone HTML (42 MB), open directly in any browser. No backend required. All 14-city data is embedded as static JSON.
+`outputs/maps/crime_map_v8.html` — standalone HTML (43 MB), open directly in any browser. No backend required. All 17-city data is embedded as static JSON.
 
 ### Features
 
 | Feature | Description |
 |---------|-------------|
-| 14-city tabs | NYC / Chicago / LA / London / Philadelphia / DC / West Yorkshire / Detroit / Kansas City / Peoria / Cambridge / Salt Lake City / Birmingham / Karachi |
+| 17-city tabs | NYC / Chicago / LA / London / Philadelphia / DC / West Yorkshire / Detroit / Kansas City / Peoria / Cambridge / Salt Lake City / Birmingham / Karachi / Seattle / San Francisco / Dallas |
 | Time slot animation | 4 slots auto-cycle every 1.8s, or click to select (disabled for Karachi — no time dimension) |
 | **Season filter** | 春 Spring [3–5] / 夏 Summer [6–8] / 秋 Fall [9–11] / 冬 Winter [12,1,2] / 全年 All |
 | Grid click details | coordinates, true category, predicted category (✓/✗), confidence, count, risk score, probability bar chart; sidebar auto-scrolls to panel |
@@ -202,6 +202,7 @@ All cities are unified to 3 categories:
 | DC | Model assigns 0% violent probability to all grids (97% property dominance collapses the classifier). Risk scores are all 0 |
 | London | Calibrated confidence max = 0.498 — the most balanced crime distribution makes all predictions genuinely uncertain |
 | Cambridge / SLC / Birmingham | Near-perfect map accuracy reflects class dominance, not true model power |
+| Dallas | Class collapse — model predicts "other" for all grids (84.1% map acc reflects majority-class dominance). Data 2014–2017 from older API endpoint |
 
 ---
 
