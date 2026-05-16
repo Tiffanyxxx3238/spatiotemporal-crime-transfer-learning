@@ -40,6 +40,19 @@ Each prediction unit is a **(grid cell × time slot × month)** triple — captu
 
 **Total: ~26 million records across 14 cities**
 
+> **Karachi note**: The Kaggle synthetic dataset has `hour=0` for all records — no time-of-day dimension. The map displays all Karachi grids regardless of selected time slot, and the time slider is disabled for this city.
+
+### Planned additions (download scripts ready)
+
+| City | State | Source | Status |
+|------|-------|--------|--------|
+| Seattle | WA | Seattle Open Data (Socrata) | ❌ 新增腳本 — `src/download_seattle.py` · `notebook/crime_classification_full_Seattle.py` |
+| San Francisco | CA | SF Open Data (Socrata) | ❌ 新增腳本 — `src/download_sf.py` · `notebook/crime_classification_full_SF.py` |
+| Dallas | TX | Dallas Open Data (Socrata) | ❌ 新增腳本 — `src/download_dallas.py` · `notebook/crime_classification_full_Dallas.py` |
+| Lansing | MI | ArcGIS FeatureServer | Script ready — `src/download_lansing_dayton_littlerock.py` |
+| Dayton | OH | ArcGIS FeatureServer | Script ready |
+| Little Rock | AR | ArcGIS FeatureServer | Script ready |
+
 ---
 
 ## Model Performance (Method B — with Month)
@@ -57,7 +70,7 @@ Grid cells are grouped by `(lat_bin, lon_bin, time_slot, month)`. Compared to th
 | Detroit | 15,856 | 93.2% | |
 | Kansas City | 20,123 | 67.7% | |
 | DC | 3,783 | 92.9% | |
-| Karachi | 1,677 | 56.3% | Synthetic data |
+| Karachi | 1,677 | 56.3% | Synthetic data, no time-of-day dimension |
 | Salt Lake City | 1,242 | 99.8% | |
 | Peoria | 3,889 | 82.6% | |
 | Cambridge | 854 | 100.0% | Small dataset, highly separable |
@@ -167,10 +180,10 @@ All cities are unified to 3 categories:
 | Feature | Description |
 |---------|-------------|
 | 14-city tabs | NYC / Chicago / LA / London / Philadelphia / DC / West Yorkshire / Detroit / Kansas City / Peoria / Cambridge / Salt Lake City / Birmingham / Karachi |
-| Time slot animation | 4 slots auto-cycle every 1.8s, or click to select |
+| Time slot animation | 4 slots auto-cycle every 1.8s, or click to select (disabled for Karachi — no time dimension) |
 | **Season filter** | 春 Spring [3–5] / 夏 Summer [6–8] / 秋 Fall [9–11] / 冬 Winter [12,1,2] / 全年 All |
-| Grid click details | coordinates, true category, predicted category (✓/✗), confidence, count, risk score, probability bar chart |
-| Alert threshold | Slider sets risk threshold; grids above it are flagged with badges |
+| Grid click details | coordinates, true category, predicted category (✓/✗), confidence, count, risk score, probability bar chart; sidebar auto-scrolls to panel |
+| Alert threshold | Slider sets risk threshold; grids above it are flagged with badges. Risk is **city-normalised 0–100** (highest-risk grid in city = 100) |
 | Route risk query | Enter start/end coordinates → average/max risk and violent fraction along route |
 | Top-10 risk panel | Ranked high-risk grids for current city+timeslot; click → fly to grid |
 | Time distribution chart | Per-timeslot violent/property/other stacked bars; click → switch map timeslot |
@@ -179,7 +192,16 @@ All cities are unified to 3 categories:
 ### Grid Color Coding
 
 - **Red** = violent, **Blue** = property, **Green** = other
-- **Opacity** = confidence (high ≥ 0.80, medium 0.55–0.80, low < 0.55)
+- **Opacity** = confidence tier, defined **per city** using the 80th / 50th percentile of calibrated confidence (city-relative, so even London's compressed [0.34–0.50] range gets meaningful high/medium/uncertain tiers)
+
+### Known Limitations
+
+| City | Issue |
+|------|-------|
+| Karachi | Synthetic dataset has no time-of-day info (all `hour=0`). Time slot slider is disabled; all grids shown at once |
+| DC | Model assigns 0% violent probability to all grids (97% property dominance collapses the classifier). Risk scores are all 0 |
+| London | Calibrated confidence max = 0.498 — the most balanced crime distribution makes all predictions genuinely uncertain |
+| Cambridge / SLC / Birmingham | Near-perfect map accuracy reflects class dominance, not true model power |
 
 ---
 
@@ -195,13 +217,15 @@ model-predict-crime/
 │   ├── download_detroit.py
 │   ├── download_birmingham.py
 │   ├── download_slc.py
-│   └── download_cambridge.py
+│   ├── download_cambridge.py
+│   ├── download_seattle.py               # NEW — Socrata
+│   ├── download_sf.py                    # NEW — Socrata (old + new dataset)
+│   ├── download_dallas.py                # NEW — Socrata
+│   └── download_lansing_dayton_littlerock.py  # NEW — ArcGIS (--city flag)
 ├── notebook/
 │   ├── clean_*.py                        # City-specific cleaning scripts
 │   ├── crime_classification_full_NYC.py  # Main pipeline template (all large cities)
-│   ├── crime_classification_full_KansasCity.py
-│   ├── crime_classification_full_Peoria.py
-│   ├── crime_classification_full_*.py    # One script per city
+│   ├── crime_classification_full_*.py    # One script per city (14 cities + 6 planned)
 │   ├── dann_crime.py                     # DANN v1 domain adaptation
 │   └── dann_v2.py                        # DANN v2 (4 improvements)
 ├── build_all_cities.py                   # Merge per-city CSVs → all_cities.csv
@@ -210,7 +234,7 @@ model-predict-crime/
 ├── data/
 │   ├── raw/                              # Downloaded CSVs (not committed to git)
 │   └── processed/
-│       ├── all_cities.csv               # All 14 cities merged (~2 GB)
+│       ├── all_cities.csv               # All cities merged (~2 GB)
 │       └── *_clean.csv                  # Per-city cleaned CSV
 └── outputs/
     ├── models/
@@ -246,7 +270,13 @@ pip install pandas==2.2.2 numpy==1.26.4 scikit-learn==1.4.2 \
 python src/01_download.py          # NYC, Chicago, LA (automatic via Socrata API)
 python src/download_kansas_city.py # Other cities individually
 python src/download_peoria.py
-# ... (see src/ for each city's downloader)
+# New cities:
+python src/download_seattle.py
+python src/download_sf.py
+python src/download_dallas.py
+python src/download_lansing_dayton_littlerock.py --city lansing
+python src/download_lansing_dayton_littlerock.py --city dayton
+python src/download_lansing_dayton_littlerock.py --city littlerock
 
 # Step 2: Clean each city
 python notebook/clean_dc.py
@@ -262,7 +292,8 @@ python build_all_cities.py         # → data/processed/all_cities.csv (~2 GB)
 # Step 4: Train models per city (run from project root)
 python notebook/crime_classification_full_NYC.py
 python notebook/crime_classification_full_KansasCity.py
-# ... (repeat for all 14 cities)
+python notebook/crime_classification_full_Seattle.py
+# ... (repeat for all cities)
 
 # Step 5: Regenerate interactive map
 python update_map_v8.py            # → outputs/maps/crime_map_v8.html
@@ -302,3 +333,4 @@ python notebook/dann_v2.py --all --epochs 100   # all city pairs
 5. **Fine-tuning hurts** — adding local data reintroduces city-specific noise, causing negative transfer
 6. **Cultural barrier is real** — cross-cultural transfer fails regardless of source city; `hist_*` features that drive in-country success are the least portable across cultures
 7. **Class imbalance inflates accuracy** — DC (97% property) and Cambridge (uniform area) achieve near-perfect map accuracy by class dominance; London (balanced crime types) is the genuinely hardest task
+8. **Confidence calibration compresses probabilities** — isotonic regression pushes calibrated probabilities toward the center; city-relative percentile tiers (p80/p50) are needed for meaningful opacity display across all cities
