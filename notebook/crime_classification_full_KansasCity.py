@@ -1,8 +1,9 @@
 """
-Crime Classification — Kansas City, MO
+Crime Classification — Kansas City, MO  [Method B: month in groupby]
 Data: 2016, 2018, 2022-2024 (~570k records, non-contiguous years)
 Temporal split: 74/13/13 using sorted datetime (standard)
 Grid size: 0.01° (~1km²)
+Prediction unit: grid × time_slot × month  (captures seasonal patterns)
 """
 import pandas as pd
 import numpy as np
@@ -51,10 +52,10 @@ print(f'  Train: {len(train_df):,}  Val: {len(val_df):,}  Test: {len(test_df):,}
 print(f'  Train period: {train_df["datetime"].min().date()} ~ {train_df["datetime"].max().date()}')
 print(f'  Test  period: {test_df["datetime"].min().date()}  ~ {test_df["datetime"].max().date()}')
 
-# ── Grid aggregation ──────────────────────────────────────────────────────────
+# ── Grid aggregation (Method B: group by month) ───────────────────────────────
 def agg_grids(part):
-    g = part.groupby(['lat_bin', 'lon_bin', 'time_slot', 'crime_type']).size().reset_index(name='cnt')
-    g2 = g.groupby(['lat_bin', 'lon_bin', 'time_slot']).apply(
+    g = part.groupby(['lat_bin', 'lon_bin', 'time_slot', 'month', 'crime_type']).size().reset_index(name='cnt')
+    g2 = g.groupby(['lat_bin', 'lon_bin', 'time_slot', 'month']).apply(
         lambda x: pd.Series({'total_count': x['cnt'].sum(),
                               'dominant_category': x.loc[x['cnt'].idxmax(), 'crime_type'],
                               **{f'p_{c}': x.loc[x['crime_type']==c,'cnt'].sum()/x['cnt'].sum()
@@ -83,21 +84,6 @@ train_g = add_hist(train_g)
 val_g   = add_hist(val_g)
 test_g  = add_hist(test_g)
 
-# ── Temporal hist features (train only) ───────────────────────────────────────
-temp_hist = train_df.groupby(['lat_bin','lon_bin']).agg(
-    weekend_ratio = ('day_of_week', lambda x: (x >= 5).mean()),
-    month_sin_avg = ('month', lambda x: np.sin(2*np.pi*x/12).mean()),
-    month_cos_avg = ('month', lambda x: np.cos(2*np.pi*x/12).mean()),
-).reset_index()
-
-def add_temporal_hist(g):
-    return g.merge(temp_hist, on=['lat_bin','lon_bin'], how='left').fillna(
-        {'weekend_ratio': 0.29, 'month_sin_avg': 0.0, 'month_cos_avg': 0.0}
-    )
-
-train_g = add_temporal_hist(train_g)
-val_g   = add_temporal_hist(val_g)
-test_g  = add_temporal_hist(test_g)
 
 # ── Spatial lag features ──────────────────────────────────────────────────────
 def add_spatial_lag(g, k=4):
@@ -128,10 +114,12 @@ def add_features(g, ref_df):
     density = ref_df.groupby(['lat_bin','lon_bin'])['crime_type'].count().reset_index(name='density')
     g = g.merge(density, on=['lat_bin','lon_bin'], how='left')
     g['density_pct'] = g['density'].fillna(0).rank(pct=True)
-    g['lat_norm'] = (g['lat_bin'] - g['lat_bin'].mean()) / (g['lat_bin'].std() + 1e-9)
-    g['lon_norm'] = (g['lon_bin'] - g['lon_bin'].mean()) / (g['lon_bin'].std() + 1e-9)
-    g['ts_sin']   = np.sin(2*np.pi*g['time_slot']/4)
-    g['ts_cos']   = np.cos(2*np.pi*g['time_slot']/4)
+    g['lat_norm']   = (g['lat_bin'] - g['lat_bin'].mean()) / (g['lat_bin'].std() + 1e-9)
+    g['lon_norm']   = (g['lon_bin'] - g['lon_bin'].mean()) / (g['lon_bin'].std() + 1e-9)
+    g['ts_sin']     = np.sin(2*np.pi*g['time_slot']/4)
+    g['ts_cos']     = np.cos(2*np.pi*g['time_slot']/4)
+    g['month_sin']  = np.sin(2*np.pi*g['month']/12)   # seasonal encoding
+    g['month_cos']  = np.cos(2*np.pi*g['month']/12)
     return g
 
 train_g = add_features(train_g, train_df)
@@ -142,7 +130,7 @@ FEATURES = ([f'hist_{c}' for c in CATEGORIES] +
             [f'lag_{c}'  for c in CATEGORIES] +
             ['violent_pct','density_pct','lat_bin','lon_bin',
              'lat_norm','lon_norm','time_slot','ts_sin','ts_cos',
-             'weekend_ratio','month_sin_avg','month_cos_avg'])
+             'month', 'month_sin', 'month_cos'])
 
 le = LabelEncoder()
 le.fit(CATEGORIES)
@@ -215,7 +203,8 @@ print(f'Test  Accuracy:          {acc:.4f}')
 # ── Grid risk CSV ─────────────────────────────────────────────────────────────
 print('\nBuilding grid_risk CSV...')
 all_g = pd.concat([train_g, val_g, test_g], ignore_index=True)
-all_g2 = all_g.groupby(['lat_bin','lon_bin','time_slot']).agg(
+# Keep month in groupby — Method B preserves seasonal dimension
+all_g2 = all_g.groupby(['lat_bin','lon_bin','time_slot','month']).agg(
     total_count=('total_count','sum'),
     dominant_category=('dominant_category', lambda x: x.value_counts().index[0]),
     p_violent=('p_violent','mean'),
@@ -224,7 +213,6 @@ all_g2 = all_g.groupby(['lat_bin','lon_bin','time_slot']).agg(
 ).reset_index()
 all_g2 = add_hist(all_g2)
 all_g2 = add_spatial_lag(all_g2)
-all_g2 = add_temporal_hist(all_g2)
 all_g2 = add_features(all_g2, df)
 
 X_all = all_g2[FEATURES].fillna(0)
@@ -245,6 +233,7 @@ out = pd.DataFrame({
     'lat_bin':           all_g2['lat_bin'].round(4),
     'lon_bin':           all_g2['lon_bin'].round(4),
     'time_slot':         all_g2['time_slot'].astype(int),
+    'month':             all_g2['month'].astype(int),
     'total_count':       all_g2['total_count'].astype(int),
     'dominant_category': true_lbl,
     'pred':              pred_lbl,

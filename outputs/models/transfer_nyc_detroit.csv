@@ -1,4 +1,4 @@
 Scenario,Precision Macro,F1 Macro
-Detroit baseline,0.8263,0.8653
-Zero-shot NYC->Detroit,0.8827,0.8532
-Teacher-Student (T=3),0.7804,0.7859
+Detroit baseline,0.9461,0.9371
+Zero-shot NYC->Detroit,0.8739,0.8663
+Teacher-Student (T=3),0.8881,0.877

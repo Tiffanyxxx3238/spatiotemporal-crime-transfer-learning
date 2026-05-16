@@ -66,7 +66,7 @@ def build_grid_from_events(events, grid_size=0.01, min_count=3):
            'weekday_mean': ('weekday', 'mean')}
     for cat in CATEGORIES:
         agg[f'cnt_{cat}'] = (f'cnt_{cat}', 'sum')
-    grid = d.groupby(['lat_bin','lon_bin','time_slot']).agg(**agg).reset_index()
+    grid = d.groupby(['lat_bin','lon_bin','time_slot','month']).agg(**agg).reset_index()
     cnt_cols = [f'cnt_{cat}' for cat in CATEGORIES]
     for cat in CATEGORIES:
         grid[f'hist_{cat}'] = grid[f'cnt_{cat}'] / grid['total_count']
@@ -290,7 +290,7 @@ print('Calibration complete, models saved.')
 # CELL 7: Grid risk scores
 # ============================================================
 proba_test_lgb = lgb_model.predict_proba(X_test)
-risk_df = grid_test[['lat_bin','lon_bin','time_slot','total_count',
+risk_df = grid_test[['lat_bin','lon_bin','time_slot','month','total_count',
                       'dominant_category']].copy().reset_index(drop=True)
 risk_df['pred']  = le.inverse_transform(y_pred_lgb)
 risk_df['conf']  = proba_test_lgb.max(axis=1)

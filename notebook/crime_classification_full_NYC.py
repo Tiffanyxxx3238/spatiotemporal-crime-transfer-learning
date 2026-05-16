@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 # coding: utf-8
 
 # # Cross-City Crime Pattern Analysis & Transfer Learning
@@ -25,6 +25,8 @@
 import os, warnings
 import numpy as np
 import pandas as pd
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.stats import entropy as scipy_entropy
@@ -41,9 +43,9 @@ from sklearn.metrics import (
 import joblib
 warnings.filterwarnings('ignore')
 
-PROC_DIR  = '../data/processed'
-MODEL_DIR = '../outputs/models'
-EDA_DIR   = '../outputs/eda'
+PROC_DIR  = r'C:\Users\user\GitHub\model-predict-crime\data\processed'
+MODEL_DIR = r'C:\Users\user\GitHub\model-predict-crime\outputs\models'
+EDA_DIR   = r'C:\Users\user\GitHub\model-predict-crime\outputs\eda'
 for d in [MODEL_DIR, EDA_DIR]:
     os.makedirs(d, exist_ok=True)
 
@@ -140,7 +142,7 @@ def build_grid_from_events(events, grid_size=0.01, min_count=3):
     for cat in CATEGORIES:
         agg[f'cnt_{cat}'] = (f'cnt_{cat}', 'sum')
 
-    grid = d.groupby(['lat_bin','lon_bin','time_slot']).agg(**agg).reset_index()
+    grid = d.groupby(['lat_bin','lon_bin','time_slot','month']).agg(**agg).reset_index()
     cnt_cols = [f'cnt_{cat}' for cat in CATEGORIES]
 
     for cat in CATEGORIES:
@@ -264,16 +266,17 @@ def make_features(grid_period, ref_grid=None):
     if ref_grid is not None:
         # Use TRAIN hist_* as features for val/test
         # (past behaviour -> predict future dominant category)
-        hist_cols = ['lat_bin','lon_bin','time_slot'] + \
+        hist_cols = ['lat_bin','lon_bin','time_slot','month'] + \
                     [f'hist_{c}' for c in CATEGORIES] + \
                     [f'lag_{c}'  for c in CATEGORIES] + \
                     ['log_count','top1_ratio','dominance_gap','entropy']
         available = [c for c in hist_cols if c in ref_grid.columns]
         ref = ref_grid[available].copy()
         # Drop hist_* columns from d before merging ref
-        drop_cols = [c for c in available if c not in ['lat_bin','lon_bin','time_slot']]
+        drop_cols = [c for c in available if c not in ['lat_bin','lon_bin','time_slot','month']]
         d = d.drop(columns=[c for c in drop_cols if c in d.columns])
-        d = d.merge(ref, on=['lat_bin','lon_bin','time_slot'], how='left')
+        d = d.merge(ref, on=['lat_bin','lon_bin','time_slot','month'], how='left')
+        d = d.reset_index(drop=True)
         # Fallback: grids not seen in train -> use median from train
         for c in CATEGORIES:
             med = ref_grid[f'hist_{c}'].median()
@@ -1229,7 +1232,7 @@ proba_all_cal = apply_calibration(cal_platt_cat, proba_all_raw, 'platt')
 pred_all      = proba_all_cal.argmax(axis=1)
 violent_idx   = list(le.classes_).index('violent')
 
-risk_df = grid_test[['lat_bin','lon_bin','time_slot','total_count',
+risk_df = grid_test[['lat_bin','lon_bin','time_slot','month','total_count',
                       'dominant_category','dominance_gap','entropy']].copy()
 risk_df['predicted_category']   = le.inverse_transform(pred_all)
 risk_df['confidence_calibrated']= proba_all_cal.max(axis=1).round(4)

@@ -1,3 +1,3 @@
 Method,Precision Macro,F1 Macro,Coverage
-CatBoost,1.0,1.0,1.0
-LightGBM,0.928,0.9269,1.0
+CatBoost,0.9989,0.9991,1.0
+LightGBM,1.0,1.0,1.0

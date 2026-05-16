@@ -1,8 +1,8 @@
 feature,jsd
-hist_other,0.8
-hist_property,0.5137
-entropy,0.4934
-hist_violent,0.4786
-top1_ratio,0.3709
-dominance_gap,0.2411
-log_count,0.1387
+hist_other,0.7698
+hist_property,0.4733
+hist_violent,0.4406
+entropy,0.4355
+top1_ratio,0.3177
+dominance_gap,0.1855
+log_count,0.1177
