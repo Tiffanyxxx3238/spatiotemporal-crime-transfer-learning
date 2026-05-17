@@ -176,40 +176,202 @@ All cities are unified to 3 categories:
 
 ## Interactive Map
 
-`outputs/maps/crime_map_v8.html` — standalone HTML (~46 MB), open directly in any browser. No backend required. All 17-city data is embedded as static JSON.
+**File:** `outputs/maps/crime_map_v8.html` — ~46 MB standalone HTML, no backend required.  
+**Open:** double-click the file in any modern browser (Chrome / Firefox / Edge). All 17-city data is embedded as static JSON.
 
-### Features
+---
 
-| Feature | Description |
-|---------|-------------|
-| 17-city tabs | NYC / Chicago / LA / London / Philadelphia / DC / West Yorkshire / Detroit / Kansas City / Peoria / Cambridge / Salt Lake City / Birmingham / Karachi / Seattle / San Francisco / Dallas |
-| Time slot animation | 4 slots auto-cycle every 1.8s, or click to select (disabled for Karachi — no time dimension) |
-| **Season filter** | Spring [3–5] / Summer [6–8] / Fall [9–11] / Winter [12,1,2] / All Year |
-| **Map click navigation** | Click any map area → zooms in one level with pulse ring; click a grid cell → flies to that cell and opens detail panel |
-| **Grid click details** | Coordinates, true category, predicted category (✓/✗), confidence, count, risk score, probability bar chart |
-| Alert threshold | Slider sets risk threshold; grids above it are flagged with badges. Risk is **city-normalised 0–100** (highest-risk grid = 100) |
-| Route risk query | Enter start/end coordinates → average/max risk and violent fraction along route |
-| Top-10 risk panel | Ranked high-risk grids for current city+timeslot; click → fly to grid |
-| Time distribution chart | Per-timeslot violent/property/other stacked bars; click → switch map timeslot |
-| **Chinese / English toggle** | All UI labels (including city subtitle, alert badge, detail panel) switch between 中文 and English |
-| Dark/light theme | Switches CartoDB dark_all ↔ light_all basemap |
-| **Intro animation** | Police-car-chasing-thief loader animation on first open |
+### Getting Started
 
-### Grid Color Coding
+When you open the map you will see three sequential screens:
+
+1. **Intro animation** — a police car chases a thief across the screen while data loads.
+2. **Role selection** — choose your view before entering the map:
+   - **Police View 警政署視角** — reveals the Patrol tab, high-risk grid ranking, threshold presets, and decision-support text.
+   - **Public View 一般民眾視角** — shows a citizen-friendly safety summary and a list of lower-risk areas to visit.
+3. **Main map** — the full interactive interface described below.
+
+You can switch roles at any time using the **「選擇視角 / Choose View」** chip in the top-right corner of the sidebar.
+
+---
+
+### Sidebar Layout
+
+The sidebar has up to **six tabs** (some are role-specific):
+
+| Tab | Available to | Content |
+|-----|-------------|---------|
+| **總覽 / Overview** | Everyone | City selector, time slider, auto-play, season/month filter |
+| **篩選 / Filters** | Everyone | Season buttons (Spring / Summer / Fall / Winter / All Year) and month buttons (Jan – Dec) |
+| **分析 / Analysis** | Everyone | City statistics, confidence breakdown, legend, layer toggles, alert threshold, route risk query |
+| **巡邏 / Patrol** | Police View only | Patrol priority list, threshold presets, max-risk summary |
+| **民眾 / Public** | Public View only | Area safety summary, lower-risk grid list, "find safest area" button |
+| **工具 / Tools** | Everyone | Top-10 high-risk grids, time-slot distribution chart, grid detail panel |
+
+---
+
+### City & Time Selection
+
+- **City tabs** (top of sidebar): 17 cities arranged in a 2-column scrollable grid. Active city is highlighted in blue.
+- **Time slider**: drag or click one of four positions — 深夜/Night (00–06), 早晨/Morning (06–12), 下午/Afternoon (12–18), 夜晚/Evening (18–24).
+- **Auto Play**: click ▶ to cycle through all four time slots every 1.8 s. Click ⏹ to stop.
+- **Season filter**: narrows grids to months in that season. Stacks with the time slider.
+- **Month filter**: drill down to a single calendar month (1–12). Selecting a month clears the season filter, and vice versa.
+
+> **Karachi exception**: the synthetic dataset has `hour=0` for all records. The time slider is disabled for Karachi and all grids are shown regardless of selected slot.
+
+---
+
+### Reading the Map
+
+#### Grid colour
+| Colour | Crime category |
+|--------|---------------|
+| 🔴 Red | Violent (assault, robbery, murder, rape) |
+| 🔵 Blue | Property (theft, burglary, fraud, arson) |
+| 🟢 Green | Other (drug offences, public disorder) |
+
+#### Grid opacity
+Opacity encodes **model confidence**, calibrated per city so every city has a meaningful range:
+
+| Opacity | Tier | Condition |
+|---------|------|-----------|
+| Solid (≥ p80) | High confidence | Model is highly certain of its prediction |
+| Medium (p50–p80) | Mid confidence | Moderate certainty |
+| Faint (< p50) | Uncertain | Low certainty; treat with caution |
+
+Percentile thresholds (p80 / p50) are computed **per city** from calibrated probabilities, so cities with compressed confidence ranges (e.g., London max ≈ 0.50) still display useful opacity variation.
+
+#### Decision Support panel (bottom-left overlay)
+Shows a plain-language summary of the current view: how many grids are visible, how many exceed the alert threshold, and the highest-risk prediction. Updates whenever city, time, season, or month changes.
+
+#### Model Accuracy badge (top-right overlay)
+Displays the map accuracy (fraction of grids where prediction = true dominant category) and the current city + time subtitle. This is a training-set metric, not a live prediction.
+
+---
+
+### Interacting with the Map
+
+#### Clicking grids
+Click any coloured grid cell to:
+- Fly the map to that grid (zoom 14) with a white pulse ring
+- Open the **Grid Detail** panel in the Tools tab showing:
+  - Coordinates, true category, predicted category (✓ correct / ✗ wrong)
+  - Confidence %, event count, risk score (0–100)
+  - Dominance gap and entropy
+  - Probability bar chart for all three categories
+  - Patrol suggestion text (Police View) or safety note (Public View)
+
+#### Clicking empty map area
+Click anywhere on the basemap (not a grid) to zoom in one level with a blue pulse ring, centering on the clicked point.
+
+---
+
+### Alert Threshold
+
+The **風險分數 / Risk Score** slider (Analysis tab) sets a threshold from 0 to 100:
+
+- Grids **above** the threshold display an ⚠ alert marker on the map.
+- The **⚠ N 個高風險格子 / N high-risk grids** badge appears top-left when any grids exceed the threshold.
+- The count below the slider shows exactly how many grids are above threshold.
+
+Risk scores are **city-normalised**: the highest-risk grid in each city scores 100, so scores are comparable within a city but not across cities.
+
+**Police View threshold presets** (Patrol tab):
+
+| Preset | Score | Use case |
+|--------|-------|----------|
+| 日常 / Routine | 50 | Everyday patrol planning |
+| 加強 / Enhanced | 65 | Heightened attention periods |
+| 緊急 / Urgent | 80 | Limited resources or special events |
+
+---
+
+### Route Risk Query (Analysis tab)
+
+Enter the latitude/longitude of a start and end point. The system finds all grid cells within 0.01° of the straight-line route and reports:
+
+| Output | Meaning |
+|--------|---------|
+| 沿途格子數 / Route Grids | Number of grids along the path |
+| 平均風險 / Avg Risk | Mean risk score of route grids |
+| 最高風險 / Max Risk | Peak risk score on the route |
+| 暴力犯罪佔比 / Violent Share | Fraction of route grids predicted as violent |
+
+---
+
+### Top-10 High-Risk Grids (Tools tab)
+
+Lists the 10 highest-risk grids for the current city and time slot, sorted by risk score. Each row shows:
+- Rank, predicted category, risk score
+- Coordinates and confidence
+
+Click any row to fly the map to that grid and open its detail panel.
+
+---
+
+### Patrol Priority List (Patrol tab — Police View only)
+
+Automatically populated from grids that exceed the current alert threshold (up to top 40, sorted by risk descending). Each entry shows:
+- Risk score, coordinates, confidence, event count
+- Suggested action level: 一般 / 注意巡視 / 加強巡邏 / 緊急
+- Contextual patrol note based on crime category and current time/season
+
+Click any entry to fly the map to that grid.
+
+#### Patrol Check-In (打卡)
+
+Each patrol list item has a **「打卡 / Check In」** button:
+
+| Action | Result |
+|--------|--------|
+| Click **打卡** | Marks the grid as visited; button turns green (✓ 已打卡 / Done); list card dims with a green tint |
+| Click again | Removes the check-in |
+| **Progress bar** | Shows "已打卡 X / Y · N%" at the top of the list; updates live |
+| **清除 / Clear** | Resets all check-ins for the current session |
+| **Map overlay** | Checked-in grids display a green dashed border and a ✓ marker on the map so already-visited areas are visually distinct |
+
+Check-in state is in-memory only and resets when the page is refreshed.
+
+---
+
+### Public Safety Panel (Public tab — Public View only)
+
+- **Area summary**: plain-language description of current city risk level (average risk, number of high-risk areas)
+- **Lower-risk areas list**: up to 8 grids with risk below threshold, sorted safest-first
+- **「查看目前較低風險區域 / View lower-risk area」** button: flies map to the safest grid
+
+---
+
+### UI Controls
+
+| Control | Location | Action |
+|---------|----------|--------|
+| **中 / EN** | Sidebar top-right | Toggle Chinese ↔ English for all labels |
+| **☀ 亮色 / 🌙 暗色** | Sidebar top-right | Switch light ↔ dark basemap theme |
+| **選擇視角 / Choose View** | Sidebar top-right | Re-open role selection |
+| Layer toggles (3×) | Analysis tab | Show/hide: Prediction grids / Violence heatmap / Alert markers independently |
+| Time-slot distribution bars | Tools tab | Click any bar to switch the map to that time slot |
+
+---
+
+### Grid Color Coding (Summary)
 
 - **Red** = violent, **Blue** = property, **Green** = other
 - **Opacity** = confidence tier, defined **per city** using the 80th / 50th percentile of calibrated confidence (city-relative, so even London's compressed [0.34–0.50] range gets meaningful high/medium/uncertain tiers)
+
+---
 
 ### Known Limitations
 
 | City | Issue |
 |------|-------|
 | Karachi | Synthetic dataset has no time-of-day info (all `hour=0`). Time slot slider is disabled; all grids shown at once |
-| DC | 97% property dominance — model predicts property for nearly all grids; risk scores are derived from log-normalised event count (proba_violent = 0 for all grids, so count-density is used instead) |
+| DC | 97% property dominance — model predicts property for nearly all grids; risk scores derived from log-normalised event count (proba_violent = 0 for all grids) |
 | London | Calibrated confidence max ≈ 0.498 — the most balanced crime distribution makes all predictions genuinely uncertain |
 | Cambridge / SLC / Birmingham | Near-perfect map accuracy reflects class dominance, not true model power |
-| Dallas | Class collapse — model predicts "other" for 100% of grids (70.5% map acc reflects majority-class dominance). Dataset is heavily skewed toward `other` category |
-| San Francisco | Strong property bias — model predicts violent for 0 grids; moderate precision due to heavy property dominance |
+| Dallas | Class collapse — model predicts "other" for 100% of grids (70.5% map acc reflects majority-class dominance) |
+| San Francisco | Strong property bias — model predicts violent for 0 grids |
 
 ---
 
