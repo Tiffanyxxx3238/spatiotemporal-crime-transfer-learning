@@ -30,9 +30,11 @@ PLACEHOLDER = '/*__CITY_DATA_HERE__*/'
 # ── Replace template's demo CITY_DATA with real data ─────────────────────────
 t_idx   = template.index('const CITY_DATA=')
 t_start = t_idx + len('const CITY_DATA=')
-# find the next `const` or `</script>` to know where demo data ends
-t_end_m = re.search(r'(;\s*\n(?:const |let |var |function |//)|\s*</script>)', template[t_start:])
-t_end   = t_start + t_end_m.start()
+# Find where the JSON object ends using raw_decode (stops exactly at JSON boundary)
+import json as _json
+decoder = _json.JSONDecoder()
+_, json_len = decoder.raw_decode(template[t_start:])
+t_end = t_start + json_len  # points to char right after closing }
 
 new_html = template[:t_start] + CD + template[t_end:]
 

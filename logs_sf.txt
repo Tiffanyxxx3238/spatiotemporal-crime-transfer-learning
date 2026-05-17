@@ -1,0 +1,29 @@
+Setup complete
+Total records: 977,768
+Date range: 2003-01-01 00:00:00 to 2026-05-14 23:50:00
+Train: 723,548 | Val: 127,110 | Test: 127,110
+Grids — Train: 6,317 | Val: 5,132 | Test: 4,893
+Feature matrix: train=(6317, 26), val=(5132, 26), test=(4893, 26)
+0:	learn: 0.9560144	test: 0.3498956	best: 0.3498956 (0)	total: 156ms	remaining: 1m 33s
+Stopped by overfitting detector  (50 iterations wait)
+
+bestTest = 0.3541357562
+bestIteration = 1
+
+Shrink model to first 2 iterations.
+Training until validation scores don't improve for 50 rounds
+Early stopping, best iteration is:
+[16]	valid_0's multi_logloss: 0.759649
+
+=== SF Test Precision (macro): 0.440 ===
+true      pred    
+property  property    2734
+other     property    1288
+          other        480
+property  other        222
+violent   property     150
+          other         19
+Name: count, dtype: int64
+Saved 4,893 grid rows → C:\Users\user\GitHub\model-predict-crime\notebook\..\outputs\models\grid_risk_sf.csv
+Map accuracy: 65.7%
+Done.

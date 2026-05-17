@@ -1,0 +1,32 @@
+Setup complete
+Total records: 1,138,618
+Date range: 1975-12-16 15:00:00 to 2026-05-14 23:43:40
+Train: 842,577 | Val: 148,020 | Test: 148,021
+Grids — Train: 13,028 | Val: 9,501 | Test: 9,094
+Feature matrix: train=(13028, 26), val=(9501, 26), test=(9094, 26)
+0:	learn: 0.9605460	test: 0.5346504	best: 0.5346504 (0)	total: 152ms	remaining: 1m 31s
+Stopped by overfitting detector  (50 iterations wait)
+
+bestTest = 0.5346503957
+bestIteration = 0
+
+Shrink model to first 1 iterations.
+Training until validation scores don't improve for 50 rounds
+Early stopping, best iteration is:
+[13]	valid_0's multi_logloss: 0.857903
+
+=== Seattle Test Precision (macro): 0.510 ===
+true      pred    
+property  property    6144
+other     property    2123
+          other        395
+property  other        259
+violent   property     166
+other     violent        2
+property  violent        2
+violent   other          2
+          violent        1
+Name: count, dtype: int64
+Saved 9,094 grid rows → C:\Users\user\GitHub\model-predict-crime\notebook\..\outputs\models\grid_risk_seattle.csv
+Map accuracy: 71.9%
+Done.

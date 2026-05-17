@@ -1,0 +1,26 @@
+Setup complete
+Total records: 1,468,285
+Date range: 1967-08-11 09:00:00 to 2026-05-15 22:21:00
+Train: 1,086,530 | Val: 190,877 | Test: 190,878
+Grids — Train: 35,520 | Val: 18,750 | Test: 18,756
+Feature matrix: train=(35520, 26), val=(18750, 26), test=(18756, 26)
+0:	learn: 0.9770423	test: 0.3145320	best: 0.3145320 (0)	total: 148ms	remaining: 1m 28s
+Stopped by overfitting detector  (50 iterations wait)
+
+bestTest = 0.3145320102
+bestIteration = 0
+
+Shrink model to first 1 iterations.
+Training until validation scores don't improve for 50 rounds
+Early stopping, best iteration is:
+[25]	valid_0's multi_logloss: 0.541728
+
+=== Dallas Test Precision (macro): 0.235 ===
+true      pred 
+other     other    13218
+property  other     4934
+violent   other      604
+Name: count, dtype: int64
+Saved 18,756 grid rows → C:\Users\user\GitHub\model-predict-crime\notebook\..\outputs\models\grid_risk_dallas.csv
+Map accuracy: 70.5%
+Done.
