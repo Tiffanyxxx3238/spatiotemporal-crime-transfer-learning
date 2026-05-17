@@ -360,30 +360,33 @@ This project would not be possible without the following open data initiatives. 
 
 | City | Dataset | Provider | License |
 |------|---------|----------|---------|
-| **New York City** | [NYPD Complaint Data Historic](https://data.cityofnewyork.us/Public-Safety/NYPD-Complaint-Data-Historic/qgea-i56i) | NYC OpenData / NYPD | Public Domain |
-| **Chicago** | [Crimes – 2001 to Present](https://data.cityofchicago.org/Public-Safety/Crimes-2001-to-Present/ijzp-q8t2) | Chicago Data Portal | Public Domain |
-| **Los Angeles** | [Crime Data from 2020 to Present](https://data.lacity.org/Public-Safety/Crime-Data-from-2020-to-Present/2nrs-mtv8) | LA Open Data / LAPD | Public Domain |
+| **New York City** | [NYPD Complaint Data Historic](https://data.cityofnewyork.us/Public-Safety/NYPD-Complaint-Data-Historic/qgea-i56i) | NYC OpenData / NYPD | City Open Data Terms |
+| **Chicago** | [Crimes – 2001 to Present](https://data.cityofchicago.org/Public-Safety/Crimes-2001-to-Present/ijzp-q8t2) | Chicago Data Portal | City Open Data Terms |
+| **Los Angeles** | [Crime Data from 2020 to Present](https://data.lacity.org/Public-Safety/Crime-Data-from-2020-to-Present/2nrs-mtv8) | LA Open Data / LAPD | City Open Data Terms |
 | **London** | [Police recorded crime](https://data.police.uk/data/) | data.police.uk / Metropolitan Police | [Open Government Licence v3.0](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/) |
 | **West Yorkshire** | [Police recorded crime](https://data.police.uk/data/) | data.police.uk / West Yorkshire Police | [Open Government Licence v3.0](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/) |
 | **Cambridge (UK)** | [Police recorded crime](https://data.police.uk/data/) | data.police.uk / Cambridgeshire Constabulary | [Open Government Licence v3.0](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/) |
-| **Philadelphia** | [Crime Incidents](https://www.opendataphilly.org/datasets/crime-incidents/) | OpenDataPhilly / Philadelphia Police Dept | Public Domain |
-| **Washington DC** | [Crime Incidents](https://opendata.dc.gov/datasets/crime-incidents-in-2023) | Open Data DC / Metropolitan Police Dept | Public Domain |
-| **Detroit** | [RMS Crime Incidents](https://data.detroitmi.gov/) | Detroit Open Data / Detroit Police Dept | Public Domain |
-| **Kansas City** | [Crime Data](https://data.kcmo.org/) | KCMO Open Data / KCPD | Public Domain |
-| **Dallas** | [Police Incidents](https://www.dallasopendata.com/) | Dallas Open Data / Dallas Police Dept | Public Domain |
-| **San Francisco** | [Police Department Incident Reports](https://data.sfgov.org/Public-Safety/Police-Department-Incident-Reports-2018-to-Present/wg3w-h783) | SF Open Data / SFPD | Public Domain |
-| **Seattle** | [SPD Crime Data](https://data.seattle.gov/Public-Safety/SPD-Crime-Data-2008-Present/tazs-3rd5) | Seattle Open Data / Seattle Police Dept | Public Domain |
-| **Salt Lake City** | [Crime Data](https://opendata.utah.gov/) | Utah Open Data / SLCPD | Public Domain |
-| **Peoria (IL)** | Crime Incidents | Peoria Police Dept (ArcGIS FeatureServer) | Public Domain |
-| **Birmingham (AL)** | Crime Incidents | Birmingham Police Dept (ArcGIS FeatureServer) | Public Domain |
-| **Karachi** | [Karachi Crime Dataset](https://www.kaggle.com/) | Kaggle (synthetic dataset) | Kaggle Dataset License |
+| **Philadelphia** | [Crime Incidents](https://www.opendataphilly.org/datasets/crime-incidents/) | OpenDataPhilly / Philadelphia Police Dept | City Open Data Terms |
+| **Washington DC** | [Crime Incidents](https://opendata.dc.gov/datasets/crime-incidents-in-2023) | Open Data DC / Metropolitan Police Dept | City Open Data Terms |
+| **Detroit** | [RMS Crime Incidents](https://data.detroitmi.gov/) | Detroit Open Data / Detroit Police Dept | City Open Data Terms |
+| **Kansas City** | [Crime Data](https://data.kcmo.org/) | KCMO Open Data / KCPD | City Open Data Terms |
+| **Dallas** | [Police Incidents](https://www.dallasopendata.com/) | Dallas Open Data / Dallas Police Dept | City Open Data Terms |
+| **San Francisco** | [Police Department Incident Reports](https://data.sfgov.org/Public-Safety/Police-Department-Incident-Reports-2018-to-Present/wg3w-h783) | SF Open Data / SFPD | City Open Data Terms |
+| **Seattle** | [SPD Crime Data](https://data.seattle.gov/Public-Safety/SPD-Crime-Data-2008-Present/tazs-3rd5) | Seattle Open Data / Seattle Police Dept | City Open Data Terms |
+| **Salt Lake City** | [Crime Data](https://opendata.utah.gov/) | Utah Open Data / SLCPD | City Open Data Terms |
+| **Peoria (IL)** | [Crimes Public](https://police-transparency-1-peoria-il.hub.arcgis.com/datasets/crimes-public) | Peoria Police Dept (ArcGIS Hub) | City Open Data Terms |
+| **Birmingham (AL)** | [Crime Data](https://data.birminghamal.gov/) | City of Birmingham, AL (CKAN Open Data Portal) | City Open Data Terms |
+| **Karachi** | [Karachi Crime Dataset](https://www.kaggle.com/datasets) (synthetic) | Kaggle contributor dataset | Kaggle Dataset License (per author) |
 
-> All datasets are used solely for academic research and non-commercial purposes.  
-> If you are a data provider and have questions about this usage, please open a GitHub issue.
+> **Licensing note:** The summaries above are informal convenience labels. Please refer to each portal's official Terms of Use for full legal details. All datasets in this project are used solely for non-commercial academic research.
+>
+> City open data portals typically publish incident-level records that have been anonymised (e.g., block-level addresses or street-snapped coordinates) to protect individual privacy. This project further aggregates all records into 0.01° × 0.01° grid cells (~1 km²), adding an additional layer of spatial anonymisation.
+>
+> If you are a data provider and have concerns about this usage, please open a GitHub issue.
 
 ---
 
 ## License
 
 This project's code is released under the [MIT License](LICENSE).  
-Data files are not redistributed — download links and instructions are provided above.
+Raw and processed data files are **not** redistributed in this repository — original download links and scripts are provided above and in [`src/`](src/).
