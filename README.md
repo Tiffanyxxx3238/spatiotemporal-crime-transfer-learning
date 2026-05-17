@@ -176,7 +176,7 @@ All cities are unified to 3 categories:
 
 ## Interactive Map
 
-`outputs/maps/crime_map_v8.html` — standalone HTML (~40 MB), open directly in any browser. No backend required. All 17-city data is embedded as static JSON.
+`outputs/maps/crime_map_v8.html` — standalone HTML (~46 MB), open directly in any browser. No backend required. All 17-city data is embedded as static JSON.
 
 ### Features
 
@@ -185,14 +185,15 @@ All cities are unified to 3 categories:
 | 17-city tabs | NYC / Chicago / LA / London / Philadelphia / DC / West Yorkshire / Detroit / Kansas City / Peoria / Cambridge / Salt Lake City / Birmingham / Karachi / Seattle / San Francisco / Dallas |
 | Time slot animation | 4 slots auto-cycle every 1.8s, or click to select (disabled for Karachi — no time dimension) |
 | **Season filter** | Spring [3–5] / Summer [6–8] / Fall [9–11] / Winter [12,1,2] / All Year |
-| **Map click navigation** | Click any grid cell → map flies to that location with a pulse indicator; click empty map area → zooms in one level |
+| **Map click navigation** | Click any map area → zooms in one level with pulse ring; click a grid cell → flies to that cell and opens detail panel |
 | **Grid click details** | Coordinates, true category, predicted category (✓/✗), confidence, count, risk score, probability bar chart |
 | Alert threshold | Slider sets risk threshold; grids above it are flagged with badges. Risk is **city-normalised 0–100** (highest-risk grid = 100) |
 | Route risk query | Enter start/end coordinates → average/max risk and violent fraction along route |
 | Top-10 risk panel | Ranked high-risk grids for current city+timeslot; click → fly to grid |
 | Time distribution chart | Per-timeslot violent/property/other stacked bars; click → switch map timeslot |
-| **Chinese / English toggle** | All UI labels switch between 中文 and English |
+| **Chinese / English toggle** | All UI labels (including city subtitle, alert badge, detail panel) switch between 中文 and English |
 | Dark/light theme | Switches CartoDB dark_all ↔ light_all basemap |
+| **Intro animation** | Police-car-chasing-thief loader animation on first open |
 
 ### Grid Color Coding
 
@@ -204,7 +205,7 @@ All cities are unified to 3 categories:
 | City | Issue |
 |------|-------|
 | Karachi | Synthetic dataset has no time-of-day info (all `hour=0`). Time slot slider is disabled; all grids shown at once |
-| DC | 97% property dominance — model predicts property for nearly all grids; risk scores are near-zero |
+| DC | 97% property dominance — model predicts property for nearly all grids; risk scores are derived from log-normalised event count (proba_violent = 0 for all grids, so count-density is used instead) |
 | London | Calibrated confidence max ≈ 0.498 — the most balanced crime distribution makes all predictions genuinely uncertain |
 | Cambridge / SLC / Birmingham | Near-perfect map accuracy reflects class dominance, not true model power |
 | Dallas | Class collapse — model predicts "other" for 100% of grids (70.5% map acc reflects majority-class dominance). Dataset is heavily skewed toward `other` category |
@@ -254,7 +255,7 @@ model-predict-crime/
     │   └── grid_risk_*.csv             # Per-city grid risk scores (with month)
     ├── eda/                             # Confusion matrices, SHAP, ablation charts
     └── maps/
-        └── crime_map_v8.html           # Interactive map — 17 cities, ~40 MB
+        └── crime_map_v8.html           # Interactive map — 17 cities, ~46 MB
 ```
 
 ---
