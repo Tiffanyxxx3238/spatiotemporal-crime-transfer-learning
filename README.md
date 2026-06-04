@@ -11,11 +11,12 @@ This project predicts the **dominant crime type** (violent / property / other) f
 Each prediction unit is a **(grid cell × time slot × month)** triple — capturing both diurnal and seasonal crime rhythms.
 
 **Key findings:**
-- Zero-shot transfer **NYC → Chicago** achieves precision **0.614**, outperforming Chicago's locally-trained model (0.439) by **+17.5 percentage points**
-- Just **3 historical composition features** (`hist_violent`, `hist_property`, `hist_other`) outperform the full 26-feature model
+- Zero-shot transfer **NYC → Birmingham (AL)** achieves precision **98.3%**, outperforming Birmingham's local model (66.3%) by **+32.0 percentage points** — transfer gain scales inversely with target city data size
+- Teacher-Student distillation NYC → Chicago beats the local baseline (+0.9pp); direct zero-shot slightly underperforms, showing that **transfer method matters**
+- Just **3 historical composition features** (`hist_violent`, `hist_property`, `hist_other`) reach **97% of the full 26-feature model's performance** (51.4% vs 53.0% Precision Macro)
 - Adding **month** to the grid groupby (Method B) improves Kansas City precision by **+3.0 pp** and enables season-level filtering in the interactive map
-- Cross-cultural transfer (NYC → Karachi) fails due to structural differences in crime reporting — confirmed identical results from two source cities
-- Fine-tuning with target city data causes **negative transfer** in all tested scenarios
+- Cross-cultural transfer (NYC/Chicago → Karachi) shows **limited gains (+1.1pp)** — both source cities produce identical results, confirming the barrier is structural, not city-specific
+- Fine-tuning with target city data causes **negative transfer** in data-rich city scenarios
 
 ---
 
@@ -55,68 +56,81 @@ Each prediction unit is a **(grid cell × time slot × month)** triple — captu
 
 ---
 
-## Model Performance (Method B — with Month)
+## Model Performance
 
-Grid cells are grouped by `(lat_bin, lon_bin, time_slot, month)`. Compared to the original time-slot-only grouping, grid counts are 4–10× larger, capturing seasonal variation.
+Grid cells are grouped by `(lat_bin, lon_bin, time_slot, month)` (Method B), capturing seasonal variation. Accuracy is reported at the aggregated grid × time-slot level.
 
-| City | Grid-Slot-Month Rows | Unique Grid Cells | Map Accuracy | Note |
-|------|--------------------:|------------------:|------------:|------|
-| NYC | 36,251 | 869 | 62.1% | |
-| Chicago | 28,194 | 672 | 69.2% | |
-| LA | 37,716 | 1,134 | 67.3% | |
-| London | 41,946 | 1,783 | 45.9% | Balanced crime distribution → harder task |
-| West Yorkshire | 17,329 | 1,108 | 63.3% | |
-| Philadelphia | 13,008 | 378 | 74.2% | |
-| Detroit | 15,856 | 442 | 93.2% | |
-| Kansas City | 20,123 | 842 | 67.7% | |
-| Dallas | 18,756 | 804 | 70.5% | Class collapse — model predicts "other" for all grids |
-| San Francisco | 4,893 | 133 | 65.7% | Strong property dominance |
-| Seattle | 9,094 | 304 | 71.9% | |
-| DC | 3,783 | 151 | 92.9% | |
-| Karachi | 1,677 | 153 | 56.3% | Synthetic data, no time-of-day dimension |
-| Salt Lake City | 1,242 | 134 | 99.8% | |
-| Peoria | 3,889 | 245 | 82.6% | |
-| Cambridge | 854 | 122 | 100.0% | Small dataset, highly separable |
-| Birmingham | 284 | 96 | 98.9% | Dominant property class |
+| City | Map Accuracy | Note |
+|------|------------:|------|
+| NYC | **71.0%** | Largest dataset (9.5M records) |
+| Chicago | **81.9%** | Main same-culture transfer target |
+| LA | **68.2%** | |
+| London | **57.9%** | Balanced crime distribution → harder task |
+| West Yorkshire | **69.3%** | |
+| Philadelphia | **81.5%** | |
+| Detroit | 93.2% | Class concentrated |
+| Kansas City | 67.7% | |
+| Dallas | 70.5% | Class collapse — model predicts "other" for all grids |
+| San Francisco | 65.7% | Strong property dominance |
+| Seattle | 71.9% | |
+| DC | **96.5%** | 97% property crimes |
+| Karachi | 56.3% | Synthetic data, no time-of-day dimension |
+| Salt Lake City | 99.8% | Highly concentrated |
+| Peoria | 82.6% | |
+| Cambridge | 100.0% | Small dataset, highly separable |
+| Birmingham (AL) | 98.9% | Dominant property class; key transfer target |
 
-> **Map Accuracy** = fraction of grid-slot-month rows where model prediction matches true dominant category.  
+> **Map Accuracy** = CatBoost test-set accuracy at grid × time-slot level.  
 > High accuracy for Cambridge / SLC / Birmingham / DC partly reflects class imbalance (one dominant crime type).
 
 ---
 
 ## Transfer Learning Results
 
-### Same-country: NYC → Chicago
+### Same-culture: Data-poor target (NYC → Birmingham)
 
-| Scenario | Precision Macro | Note |
-|----------|----------------:|------|
-| Chicago local baseline | 0.439 | Trained from scratch on Chicago data |
-| **Zero-shot NYC → Chicago** | **0.614** | No Chicago data used at all |
-| Fine-tune 10% Chicago data | 0.437 | Negative transfer |
-| Fine-tune 50% Chicago data | 0.439 | Negative transfer |
-| Teacher-Student (T=3.0) | ~0.422 | Soft label distillation |
+| Scenario | Precision Macro | vs Baseline |
+|----------|----------------:|------------|
+| Birmingham local baseline | 0.663 | — |
+| **Zero-shot NYC → Birmingham** | **0.983** | **+32.0pp ★** |
+
+Transfer is most powerful when the target city has limited data. Birmingham (20K records, 3 years) gains +32pp from NYC's model.
+
+### Same-culture: Data-rich target (NYC → Chicago)
+
+| Scenario | Precision Macro | vs Baseline | Note |
+|----------|----------------:|------------|------|
+| Chicago local baseline | 0.433 | — | Trained from scratch |
+| Zero-shot NYC → Chicago | 0.427 | −0.6pp | Slight negative transfer |
+| Fine-tune 10% Chicago data | 0.430 | −0.3pp | Negative transfer |
+| Fine-tune 50% Chicago data | 0.432 | −0.1pp | Negative transfer |
+| **Teacher-Student (T=3.0)** | **0.442** | **+0.9pp ★** | Best method |
+
+For data-rich cities (Chicago, 6.6M records), Teacher-Student distillation is the only method that beats the local baseline. Direct zero-shot application slightly hurts performance.
 
 ### Cross-cultural: NYC / Chicago → Karachi
 
-| Scenario | Precision Macro |
-|----------|----------------:|
-| Karachi local baseline | 0.625 |
-| Zero-shot NYC → Karachi | 0.389 |
-| Zero-shot Chicago → Karachi | 0.389 |
+| Scenario | Precision Macro | vs Baseline |
+|----------|----------------:|------------|
+| Karachi local baseline | 0.480 | — |
+| Zero-shot NYC → Karachi | 0.491 | +1.1pp |
+| Zero-shot Chicago → Karachi | 0.491 | +1.1pp (identical) |
 
-Both US source cities produce identical results — the barrier is structural/cultural, not city-specific.
+Both source cities produce identical results (+1.1pp) — the barrier is structural/cultural, not city-specific. The hist_* features that drive same-culture transfer show the highest Jensen-Shannon Divergence (JSD) between US cities and Karachi.
 
 ---
 
 ## Feature Ablation Study (NYC)
 
-| Feature Group | # Features | Precision Macro |
-|--------------|----------:|----------------:|
-| **hist_* only** | **3** | **0.649** |
-| All features | 26 | 0.567 |
-| hist_* + lag_* | 6 | 0.566 |
-| No hist_* | 23 | 0.520 |
-| Spatial + Temporal only | 13 | 0.464 |
+| Feature Group | # Features | Precision Macro | vs Full Model |
+|--------------|----------:|----------------:|-------------:|
+| All features | 26 | **53.0%** | ★ best |
+| hist_* + lag_* | 6 | 52.7% | −0.3pp |
+| **hist_* only** | **3** | **51.4%** | −1.6pp |
+| No hist_* | 23 | 49.9% | −3.1pp |
+| Spatial + Temporal only | 13 | 47.4% | −5.6pp |
+
+Just 3 historical composition features reach **97% of the full model's performance**. Removing them costs −3.1pp; adding 23 more features only recovers +1.6pp.
 
 `hist_*` features (grid's historical crime composition from training data) alone beat the full 26-feature model.
 

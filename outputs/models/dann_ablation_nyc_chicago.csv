@@ -1,0 +1,4 @@
+Variant,Precision Macro,F1 Macro
+Source-only (no DANN),0.4844,0.2368
+DANN no-GRL (λ=0),0.4613,0.4717
+DANN with-GRL,0.4784,0.4807
